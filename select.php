@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ขนมหวานเมืองเพชร</title>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap-4.4.1.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <?php session_start(); ?>
+  </head>
+  <body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="index.php"><img src="images/logo.jpg" height ="30px"></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="index.php">หน้าหลัก<span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="list.php">ขนมหวาน</a>
+          </li>
+
+          <?php
+            if(isset($_SESSION["account"])) {
+              echo ('
+                <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'.$_SESSION["account"]["username"].'</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="account.php">ข้อมูลส่วนตัว</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="logout.php">ออกจากระบบ</a>
+                </div>
+                </li>
+                ');
+            }
+            else {
+              echo ('
+              <li class="nav-item">
+              <a class="nav-link" href="login.php">เข้าสู่ระบบ</a>
+              </li>
+              ');
+            }
+          ?>
+          <li class="nav-item">
+              <a class="nav-link" href="admin.php">ผู้ดูแลระบบ</a>
+            </li>
+        </ul>
+      </div>
+    </nav>
+
+    <?php
+        if(isset($_GET['list'])) {
+            require("connect.php");
+            $list = $_GET['list'];
+            $_SESSION['list'] = $_GET['list'];
+            $query_menu_list = "SELECT * FROM menu WHERE menuId = '$list'";
+            $result_menu_list = mysqli_query($conn, $query_menu_list);
+            $row = $result_menu_list->fetch_assoc();
+        }
+        else {
+            die(header("location: list.php"));
+        }
+    ?>
+
+    <div class="container mt-2">
+      <div class="row">
+        <div class="col-12">
+          <div class="jumbotronn" id="left-right">
+            <center><p style="font-size: 50px"><?php echo($row['name']); ?></p>
+            <img src="images/menu/<?php echo($row['pic']); ?>" alt="" height="300px" > </center>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+        <p style="font-size: 20px"><?php echo($row["name"]); ?></p>
+        &nbsp;&nbsp;&nbsp;&nbsp;<?php echo($row["detail"])?>
+    </div>
+    <hr>
+    <?php
+        $query_comment = "SELECT * FROM comment WHERE menuId = '$list'";
+        $result_comment = mysqli_query($conn, $query_comment);
+    ?>
+    <div class="container mt-2">
+      <div class="row">
+        <div class="col-12">
+        <h1><?php echo(mysqli_num_rows($result_comment)); ?> ความคิดเห็น</h1>
+        <?php
+            if(isset($_SESSION["account"])) {
+                echo '
+                แสดงความคิดเห็น
+                <form action="comment.php" method="POST">
+                <input type="text" class="form-control" id="priceto" aria-describedby="basic-addon2" required placeholder="Comment" name="comment">
+                <p><input type="submit" class="btn btn-danger" role="button" value="ส่งความคิดเห็น"></p>
+                </form>
+                ';
+                
+            }
+        ?>
+        
+        <?php while ($row = $result_comment->fetch_assoc()): 
+            $accId = $row["accId"];
+            $query_username = "SELECT * FROM account WHERE accId = '$accId'";
+            $result_useranme = mysqli_query($conn, $query_username);
+            $row_acc = $result_useranme->fetch_assoc();
+            $name = $row_acc["username"];
+        ?>
+            <h3 style="color: orange;"><?php echo($name) ?></h3>
+            <p style="text-size: 18px">&nbsp;&nbsp;&nbsp;&nbsp;<?php echo($row['comment']) ?></p>
+            <?php
+            if(isset($_SESSION["account"]["accId"])){
+                if($accId == $_SESSION["account"]["accId"]){
+                    echo ('<a href="delete_c.php?id='.$row["commentId"].'">ลบความคิดเห็น</a>');
+                }
+            }
+                
+            ?>
+        <?php endwhile; ?>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 col-md-6 col-sm-6 mb-md-0 mb-2">
+          <h2>จัดทำโดย&nbsp;</h2>
+          <address>
+          โรงเรียนเบญจมเทพอุทิศจังหวัดเพชรบุรี&nbsp;
+          </address>
+          <h4>Social</h4>
+          <div class="row">
+            <div class="col-2"><a href="http://bmp.ac.th"><img class="rounded-circle" src="images/32X32.gif" alt=""></div></a>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-12">
+          <h2>คณะผู้จัดทำ&nbsp;</h2>
+          <ul class="list-unstyled">
+            <li class="media">
+<div class="media-body">
+            <h5 class="mt-0 mb-1">นายกฤษกร เอกนก&nbsp;</h5>
+                <p class="mb-0"><a href="mailto:st35343@bmp.ac.th">st35343@bmp.ac.th</a></p>
+              </div>
+            </li>
+            <li class="media my-4">
+<div class="media-body">
+            <h5 class="mt-0 mb-1">นายธนกร กลีบสุวรรณ์&nbsp;</h5>
+                <p class="mb-0"><a href="mailto:st35393@bmp.ac.th">st35393@bmp.ac.th</a></p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-12">
+          <h2>เกี่ยวกับพวกเรา</h2>
+          <p>พวกเรามาแข่งขันงานศิลปหัตถกรรมการสร้าง Web App หวังว่าพวกเราจะประสบความสำเร็จ</p>
+          
+        </div>
+      </div>
+    </div>
+    <hr>
+    <footer class="text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <p>Copyright © BMP 2024. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap-4.4.1.js"></script>
+  </body>
+</html>
